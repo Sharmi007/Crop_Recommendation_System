@@ -1,4 +1,4 @@
-#  Crop Recommendation App
+#  Crop Recommendation System
 
 ![Made with Flask](https://img.shields.io/badge/Made%20with-Flask-000?style=for-the-badge&logo=flask)
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)
