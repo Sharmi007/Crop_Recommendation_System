@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Weather-Based Crop Prediction | Crop Recommendation System</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+      /* --- Layout & Theme --- */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(135deg, #e8f1ff 0%, #f8fcff 100%);
+        font-family: 'Poppins', sans-serif;
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      /* --- Navbar --- */
+      .navbar {
+        background-color: #0078D7;
+        padding: 12px 40px;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        color: #fff !important;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .navbar-brand img {
+        height: 35px;
+      }
+
+      .navbar-nav .nav-link {
+        color: white !important;
+        font-weight: 500;
+        margin-right: 20px;
+        transition: 0.3s;
+      }
+
+      .navbar-nav .nav-link:hover {
+        color: #bfe3ff !important;
+      }
+
+      /* --- Card Layout --- */
+      .container {
+        max-width: 1000px;
+        margin-top: 50px;
+        margin-bottom: 60px;
+      }
+
+      .card {
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        border: none;
+      }
+
+      .left-panel {
+        background: #fff;
+        padding: 25px;
+      }
+
+      .right-panel {
+        background: #fdfdfd;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      /* --- Prediction --- */
+      .prediction-area {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        flex-wrap: wrap;
+      }
+
+      .crop-image {
+        width: 280px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      }
+
+      .prediction-card {
+        background: #e9f6ff;
+        border-left: 6px solid #0078d7;
+        border-radius: 12px;
+        padding: 18px 22px;
+        max-width: 300px;
+        min-width: 240px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+      }
+
+      .prediction-title {
+        font-weight: 600;
+        font-size: 1.05rem;
+        color: #003366;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+
+      .prediction-crop {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #1b1b1b;
+        margin-left: 26px;
+      }
+
+      /* --- Buttons --- */
+      .btn-primary {
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 600;
+        background-color: #0078D7;
+        border: none;
+      }
+
+      .btn-primary:hover {
+        background-color: #005fa3;
+      }
+
+      .btn-secondary {
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 600;
+        background-color: #6c757d;
+        color: #fff;
+      }
+
+      .btn-secondary:hover {
+        background-color: #5a6268;
+      }
+
+      /* --- Footer --- */
+      footer {
+        background-color: #0078D7;
+        color: white;
+        text-align: center;
+        padding: 15px 0;
+        margin-top: auto;
+        width: 100%;
+      }
+
+      footer p {
+        margin: 0;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
+        .prediction-area {
+          flex-direction: column;
+          text-align: center;
+        }
+        .prediction-card {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+          Crop Recommendation
+        </a>
+        <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="/manual">Manual Detection</a></li>
+            <li class="nav-item"><a class="nav-link active" href="/weather">Weather-Based</a></li>
+            <li class="nav-item"><a class="nav-link" href="/about">About Us</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Section -->
+    <main>
+      <div class="container">
+        <div class="card p-3">
+          <div class="row g-0 align-items-stretch">
+            <!-- Left Panel -->
+            <div class="col-12 col-md-6 left-panel">
+              <h3 class="text-center mb-2 text-primary fw-bold">🌦️ Weather-Based Crop Prediction</h3>
+              <p class="text-muted text-center mb-4">
+                Enter your city or use your current location to get a recommended crop.
+              </p>
+
+              <form id="weatherForm" action="/predict_weather" method="POST" novalidate>
+                <div class="mb-3">
+                  <label class="form-label">City Name</label>
+                  <input type="text" name="city" id="cityInput" class="form-control" placeholder="e.g. Delhi">
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                  <button id="submitBtn" class="btn btn-primary" type="submit">
+                    <span id="btnText">Predict Using City</span>
+                    <span id="btnSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                  </button>
+
+                  <!-- <button type="button" class="btn btn-secondary" onclick="getLocation()">
+                    📍 Get My Location
+                  </button> -->
+                </div>
+              </form>
+
+              {% if city %}
+              <div class="mt-4 p-3 border rounded bg-light">
+                <h6 class="text-muted mb-2">📍 Weather Data for {{ city }}</h6>
+                <p class="mb-1">🌡️ Temperature: <b>{{ temperature }} °C</b></p>
+                <p class="mb-1">💧 Humidity: <b>{{ humidity }} %</b></p>
+                <p>🌧️ Rainfall: <b>{{ rainfall }} mm</b></p>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Right Panel -->
+            <div class="col-12 col-md-6 right-panel">
+              <div class="prediction-area">
+                {% if crop_image %}
+                  <img src="{{ url_for('static', filename=crop_image) }}" alt="Predicted Crop" class="crop-image">
+                {% else %}
+                  <img src="{{ url_for('static', filename='images/default.jpg') }}" alt="Placeholder" class="crop-image" style="opacity:0.9;">
+                {% endif %}
+
+                {% if prediction %}
+                  <div class="prediction-card">
+                    <div class="prediction-title">
+                      🌾 <span>Recommended Crop</span>
+                    </div>
+                    <div class="prediction-crop">{{ prediction }}</div>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p>Made with 💙 by <strong>Sharmistha Hui</strong></p>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      const API_KEY = "596445241af79e1036beacb0fa19c585"; // Replace with your OpenWeatherMap API key
+
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(fetchWeatherByCoords, showError);
+        } else {
+          alert("Geolocation is not supported by this browser.");
+        }
+      }
+
+      async function fetchWeatherByCoords(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (data.cod === 200) {
+            document.getElementById("cityInput").value = data.name;
+            document.getElementById("weatherForm").submit();
+          } else {
+            alert("Unable to fetch weather data for your location.");
+          }
+        } catch (error) {
+          alert("Error fetching location-based weather data.");
+        }
+      }
+
+      function showError(error) {
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            alert("User denied the request for Geolocation.");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.");
+            break;
+          case error.TIMEOUT:
+            alert("The request to get user location timed out.");
+            break;
+          default:
+            alert("An unknown error occurred.");
+            break;
+        }
+      }
+
+      const form = document.getElementById('weatherForm');
+      const submitBtn = document.getElementById('submitBtn');
+      const btnSpinner = document.getElementById('btnSpinner');
+      const btnText = document.getElementById('btnText');
+
+      form.addEventListener('submit', function () {
+        btnSpinner.classList.remove('d-none');
+        btnText.textContent = 'Fetching Weather...';
+        submitBtn.disabled = true;
+      });
+    </script>
+  </body>
+</html>
